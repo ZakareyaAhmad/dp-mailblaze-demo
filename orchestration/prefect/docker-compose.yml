@@ -1,0 +1,51 @@
+services:
+  prefect-postgres:
+    image: postgres:15
+    container_name: prefect-postgres
+    environment:
+      POSTGRES_USER: prefect
+      POSTGRES_PASSWORD: prefect
+      POSTGRES_DB: prefect
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prefect"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - prefect_pg_data:/var/lib/postgresql/data
+
+  prefect-server:
+    image: prefecthq/prefect:2-latest
+    container_name: prefect-server
+    depends_on:
+      prefect-postgres:
+        condition: service_healthy
+    environment:
+      PREFECT_API_DATABASE_CONNECTION_URL: postgresql+asyncpg://prefect:prefect@prefect-postgres:5432/prefect
+
+      # IMPORTANT:
+      # Inside Docker network, containers must talk to "prefect-server:4200"
+      PREFECT_API_URL: http://prefect-server:4200/api
+
+    command: >
+      bash -lc "prefect server start --host 0.0.0.0 --port 4200"
+
+    # IMPORTANT:
+    # Host port 4201 -> container port 4200
+    ports:
+      - "4201:4200"
+
+  prefect-agent:
+    image: prefecthq/prefect:2-latest
+    container_name: prefect-agent
+    depends_on:
+      - prefect-server
+    environment:
+      # IMPORTANT:
+      # Agent is inside Docker, so it MUST use prefect-server:4200 (not localhost, not 0.0.0.0)
+      PREFECT_API_URL: http://prefect-server:4200/api
+    command: >
+      bash -lc "prefect agent start -q default"
+
+volumes:
+  prefect_pg_data:

@@ -21,12 +21,18 @@ venv/
 # ===============================
 # Terraform
 # ===============================
-.terraform/
-terraform.tfstate
-terraform.tfstate.*
-terraform.tfstate.d/
-*.tfvars
-*.tfvars.json
+infra/terraform/.terraform/
+infra/terraform/.terraform.lock.hcl
+infra/terraform/terraform.tfstate
+infra/terraform/terraform.tfstate.*
+infra/terraform/env/*.tfvars
+
+# ===============================
+# Local env
+# ===============================s
+.env
+infra/terraform/env/*.tfvars
+orchestration/prefect/.env
 
 # ===============================
 # OS & Editor
@@ -45,3 +51,9 @@ Thumbs.db
 # ===============================
 data/inventory/
 data/events/
+
+# ===============================
+# dbt local profile
+# ===============================
+.dbt/
+**/profiles.yml
