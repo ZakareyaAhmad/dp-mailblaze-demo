@@ -1,11 +1,10 @@
-import os
-from prefect.deployments import Deployment
-from prefect.server.schemas.schedules import IntervalSchedule
 from datetime import timedelta
 
 from flow import mailblaze_flow
+from prefect.deployments import Deployment
+from prefect.server.schemas.schedules import IntervalSchedule
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     d = Deployment.build_from_flow(
         flow=mailblaze_flow,
         name="hourly",

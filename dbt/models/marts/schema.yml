@@ -1,0 +1,33 @@
+version: 2
+
+models:
+  - name: fct_events
+    columns:
+      - name: event_id
+        tests:
+          - not_null
+          - unique
+
+      - name: event_ts
+        tests:
+          - not_null
+  - name: dim_inventory
+    description: "Current-state inventory dimension (latest record per warehouse_id + sku)."
+    columns:
+      - name: inventory_key
+        description: "Surrogate key for warehouse_id + sku."
+        tests:
+          - not_null
+          - unique
+
+      - name: warehouse_id
+        tests:
+          - not_null
+
+      - name: sku
+        tests:
+          - not_null
+
+      - name: as_of_date
+        tests:
+          - not_null

@@ -1,0 +1,157 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: dp_mailblaze_demo_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: appdb
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d appdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - dp_mailblaze_demo_net
+
+  mock_saas:
+    build:
+      context: ./mock_saas
+      dockerfile: Dockerfile
+    container_name: dp_mailblaze_demo_mock_saas
+    environment:
+      # Deterministic seed for stable pagination responses
+      MOCK_SAAS_SEED: "dp_mailblaze_demo_seed_v1"
+      TZ: "UTC"
+    ports:
+      - "8001:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read(); print('ok')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    networks:
+      - dp_mailblaze_demo_net
+
+  prefect_server:
+    image: prefecthq/prefect:2.20.11-python3.11
+    container_name: dp_mailblaze_demo_prefect_server
+    command: ["prefect", "server", "start", "--host", "0.0.0.0", "--port", "4200"]
+    environment:
+      PREFECT_UI_URL: "http://localhost:4200"
+      PREFECT_API_URL: "http://prefect_server:4200/api"
+      TZ: "UTC"
+    ports:
+      - "4200:4200"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:4200/api/health').read(); print('ok')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    networks:
+      - dp_mailblaze_demo_net
+
+  prefect_agent:
+    image: prefecthq/prefect:2.20.11-python3.11
+    container_name: dp_mailblaze_demo_prefect_agent
+    depends_on:
+      prefect_server:
+        condition: service_healthy
+    environment:
+      PREFECT_API_URL: "http://prefect_server:4200/api"
+      TZ: "UTC"
+    command: ["prefect", "agent", "start", "-q", "default"]
+    networks:
+      - dp_mailblaze_demo_net
+
+  ingest:
+    build:
+      context: ./ingest
+      dockerfile: Dockerfile
+    container_name: dp_mailblaze_demo_ingest
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mock_saas:
+        condition: service_healthy
+    environment:
+      # Unavoidable replacements live in .env and are injected by docker compose automatically
+      ENV: "${ENV:-dev}"
+      AWS_REGION: "${AWS_REGION:-eu-west-1}"
+      S3_RAW_BUCKET: "${S3_RAW_BUCKET:-}"
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID:-}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY:-}"
+
+      PG_HOST: "postgres"
+      PG_PORT: "5432"
+      PG_DB: "appdb"
+      PG_USER: "postgres"
+      PG_PASSWORD: "postgres"
+
+      MAILBLAZE_BASE_URL: "http://mock_saas:8000"
+      MAILBLAZE_API_KEY: "${MAILBLAZE_API_KEY:-dev_key_123}"
+    volumes:
+      - ./data/inventory:/data/inventory
+      - ./data/events:/data/events
+    networks:
+      - dp_mailblaze_demo_net
+    # This container is used as a runnable toolbox; it won't stay up unless you run a command.
+    entrypoint: ["python"]
+
+  dbt:
+    image: ghcr.io/dbt-labs/dbt-snowflake:1.8.3
+    container_name: dp_mailblaze_demo_dbt
+    working_dir: /dbt
+    environment:
+      TZ: "UTC"
+    volumes:
+      - ./dbt:/dbt
+    networks:
+      - dp_mailblaze_demo_net
+    entrypoint: ["dbt"]
+
+  prefect_flow:
+    build:
+      context: ./orchestrate
+      dockerfile: Dockerfile
+    container_name: dp_mailblaze_demo_prefect_flow
+    depends_on:
+      prefect_server:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      mock_saas:
+        condition: service_healthy
+    environment:
+      PREFECT_API_URL: "http://prefect_server:4200/api"
+      TZ: "UTC"
+
+      ENV: "${ENV:-dev}"
+      AWS_REGION: "${AWS_REGION:-eu-west-1}"
+      S3_RAW_BUCKET: "${S3_RAW_BUCKET:-}"
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID:-}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY:-}"
+
+      SNOWFLAKE_ACCOUNT: "${SNOWFLAKE_ACCOUNT:-}"
+      SNOWFLAKE_USER: "${SNOWFLAKE_USER:-}"
+      SNOWFLAKE_PASSWORD: "${SNOWFLAKE_PASSWORD:-}"
+      SLACK_WEBHOOK_URL: "${SLACK_WEBHOOK_URL:-}"
+
+      # dbt inside flow uses local dbt container separately in later steps; flow runs COPY + orchestration.
+    volumes:
+      - ./dbt:/dbt:ro
+    networks:
+      - dp_mailblaze_demo_net
+
+networks:
+  dp_mailblaze_demo_net:
+    name: dp_mailblaze_demo_net
+
+volumes:
+  postgres_data:
+    name: dp_mailblaze_demo_postgres_data

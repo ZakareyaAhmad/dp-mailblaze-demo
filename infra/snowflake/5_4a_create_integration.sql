@@ -1,0 +1,13 @@
+-- 5.4A Create/repair integration and extract required identifiers
+USE ROLE ACCOUNTADMIN;
+
+SELECT CURRENT_USER(), CURRENT_ROLE(), CURRENT_WAREHOUSE();
+
+CREATE STORAGE INTEGRATION IF NOT EXISTS DP_MAILBLAZE_DEMO_DEV_S3_INT
+  TYPE = EXTERNAL_STAGE
+  STORAGE_PROVIDER = S3
+  ENABLED = TRUE
+  STORAGE_AWS_ROLE_ARN = 'arn:aws:iam::443414059898:role/dp-mailblaze-demo-dev-snowflake-storage'
+  STORAGE_ALLOWED_LOCATIONS = ('s3://dp-mailblaze-demo-dev-raw-3dfbc1/');
+
+DESC INTEGRATION DP_MAILBLAZE_DEMO_DEV_S3_INT;

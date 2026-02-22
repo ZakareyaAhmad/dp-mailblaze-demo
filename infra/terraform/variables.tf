@@ -1,0 +1,1 @@
+# No input variables required for the simplified Section 4 rebuild.

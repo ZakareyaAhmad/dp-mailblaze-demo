@@ -2,10 +2,10 @@ import os
 import subprocess
 from datetime import timedelta
 
-from prefect import flow, task, get_run_logger
+from dotenv import load_dotenv
+from prefect import flow, get_run_logger, task
 from prefect.tasks import task_input_hash
 
-from dotenv import load_dotenv
 import snowflake.connector
 
 load_dotenv()
@@ -37,7 +37,9 @@ def snowflake_preflight():
     con = _sf_connect()
     try:
         cur = con.cursor()
-        cur.execute("SELECT CURRENT_USER(), CURRENT_ROLE(), CURRENT_WAREHOUSE(), CURRENT_DATABASE();")
+        cur.execute(
+            "SELECT CURRENT_USER(), CURRENT_ROLE(), CURRENT_WAREHOUSE(), CURRENT_DATABASE();"
+        )
         row = cur.fetchone()
         logger.info(f"Snowflake context: user={row[0]} role={row[1]} wh={row[2]} db={row[3]}")
 
@@ -116,5 +118,5 @@ def mailblaze_flow():
         raise
 
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     mailblaze_flow()

@@ -1,0 +1,18 @@
+version: 2
+
+sources:
+  - name: raw
+    database: DP_MAILBLAZE_DEMO_DEV_DB
+    schema: RAW
+
+    tables:
+      - name: email_events_raw
+        description: "Raw email events data ingested from the source system. Each record represents an email event with its associated metadata and payload (in VARIANT JSON)."
+        freshness:
+          warn_after: {count: 1, period: day}
+          error_after: {count: 3, period: day}
+
+      - name: inventory_raw
+        description: "Raw inventory data ingested from the source system. Each record represents the inventory status for a specific SKU at a given point in time."
+        freshness:
+          warn_after: {count: 1, period: day}

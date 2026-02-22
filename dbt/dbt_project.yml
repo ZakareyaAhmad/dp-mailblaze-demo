@@ -1,0 +1,29 @@
+name: 'dp_mailblaze_demo'
+version: '1.0.0'
+config-version: 2
+
+profile: 'dp_mailblaze_demo'
+
+model-paths: ["models"]
+snapshot-paths: ["snapshots"]
+test-paths: ["tests"]
+
+models:
+  dp_mailblaze_demo:
+
+    staging:
+      materialized: view
+      schema: STAGING
+
+    intermediate:
+      materialized: view
+      schema: INTERMEDIATE
+
+    marts:
+      materialized: table
+      schema: MART
+
+snapshots:
+  dp_mailblaze_demo:
+    target_database: DP_MAILBLAZE_DEMO_DEV_DB
+    target_schema: SNAPSHOTS

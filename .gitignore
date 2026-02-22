@@ -3,9 +3,9 @@
 # ===============================
 .env
 .env.*
-dbt/profiles.yml
 *.pem
 *.key
+dbt/profiles.yml
 
 # ===============================
 # Python
@@ -55,5 +55,27 @@ data/events/
 # ===============================
 # dbt local profile
 # ===============================
+dbt/profiles.yml
 .dbt/
 **/profiles.yml
+
+# ===============================
+# dbt artifacts
+# ===============================
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+
+#==============================
+# Local runtime data 
+#==============================
+postgres/
+**/postgres/
+
+#==============================
+# Terraform local state
+#==============================
+**/.terraform/
+**/*.tfstate
+**/*.tfstate.*
+crash.log
