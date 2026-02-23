@@ -1,0 +1,7 @@
+dp_mailblaze_demo:
+  target: ci
+  outputs:
+    ci:
+      type: duckdb
+      path: ":memory:"
+      threads: 2
