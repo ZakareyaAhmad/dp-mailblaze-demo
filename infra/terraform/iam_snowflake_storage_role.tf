@@ -55,5 +55,5 @@ resource "aws_iam_policy" "snowflake_storage_s3_read" {
 
 resource "aws_iam_role_policy_attachment" "attach_read" {
   role       = aws_iam_role.snowflake_storage.name
-  policy_arn  = aws_iam_policy.snowflake_storage_s3_read.arn
+  policy_arn = aws_iam_policy.snowflake_storage_s3_read.arn
 }
