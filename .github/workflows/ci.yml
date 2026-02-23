@@ -7,7 +7,6 @@ on:
     branches: [main]
 
 jobs:
-
   python_lint:
     name: python_lint (ruff)
     runs-on: ubuntu-latest
@@ -66,10 +65,6 @@ jobs:
   dbt_compile:
     name: dbt_compile (offline)
     runs-on: ubuntu-latest
-
-    env:
-     DBT_PROFILES_DIR: ${{ github.workspace }}/.github/ci_profiles
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -85,11 +80,22 @@ jobs:
           python -m pip install --upgrade pip
           pip install dbt-core dbt-duckdb
 
+      - name: Debug profiles directory
+        run: |
+          echo "Workspace:"
+          pwd
+          echo "List .github/ci_profiles:"
+          ls -la .github/ci_profiles || true
+          echo "Print profiles.yml:"
+          cat .github/ci_profiles/profiles.yml || true
+
       - name: dbt deps
-        run: dbt deps --project-dir dbt
+        run: |
+          dbt deps --project-dir dbt --profiles-dir .github/ci_profiles
 
       - name: dbt parse
-        run: dbt parse --project-dir dbt
+        run: |
+          dbt parse --project-dir dbt --profiles-dir .github/ci_profiles
 
   docker_build:
     name: docker_build
@@ -101,9 +107,7 @@ jobs:
           - orchestration/prefect/Dockerfile
     steps:
       - uses: actions/checkout@v4
-
       - uses: docker/setup-buildx-action@v3
-
       - name: Build image
         uses: docker/build-push-action@v6
         with:
