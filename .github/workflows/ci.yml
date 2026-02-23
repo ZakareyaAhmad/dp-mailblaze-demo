@@ -66,10 +66,16 @@ jobs:
   dbt_compile:
     name: dbt_compile (offline)
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+    env:
+     DBT_PROFILES_DIR: ${{ github.workspace }}/.github/ci_profiles
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: "pip"
@@ -80,10 +86,10 @@ jobs:
           pip install dbt-core dbt-duckdb
 
       - name: dbt deps
-        run: dbt deps --project-dir dbt --profiles-dir .github/ci_profiles
+        run: dbt deps --project-dir dbt
 
       - name: dbt parse
-        run: dbt parse --project-dir dbt --profiles-dir .github/ci_profiles
+        run: dbt parse --project-dir dbt
 
   docker_build:
     name: docker_build
