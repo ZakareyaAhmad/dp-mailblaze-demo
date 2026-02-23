@@ -1,7 +1,11 @@
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.4
+    rev: v0.6.9
     hooks:
+      # Lint only — do NOT auto-fix
       - id: ruff
-        args: ["--fix"]
+        args: ["--exit-non-zero-on-fix"]
+
+      # Format check only — do NOT auto-fix
       - id: ruff-format
+        args: ["--check"]

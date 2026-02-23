@@ -10,14 +10,15 @@ extend-exclude = [
 
 [tool.ruff.lint]
 select = [
-  "E",   # pycodestyle errors
-  "F",   # pyflakes
-  "I",   # isort
-  "B",   # flake8-bugbear
-  "UP",  # pyupgrade
+  "E",  # pycodestyle errors
+  "F",  # pyflakes
+  "I",  # isort
+  "B",  # flake8-bugbear
+  "UP", # pyupgrade
 ]
 ignore = [
   "E501", # line length handled by formatter
+  "I001", # import block ordering (avoid pre-commit loops)
 ]
 
 [tool.ruff.format]

@@ -2,11 +2,10 @@ import os
 import subprocess
 from datetime import timedelta
 
+import snowflake.connector
 from dotenv import load_dotenv
 from prefect import flow, get_run_logger, task
 from prefect.tasks import task_input_hash
-
-import snowflake.connector
 
 load_dotenv()
 
