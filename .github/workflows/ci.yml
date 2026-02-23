@@ -66,11 +66,9 @@ jobs:
     name: dbt_compile (offline)
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: "pip"
@@ -82,20 +80,20 @@ jobs:
 
       - name: Debug profiles directory
         run: |
-          echo "Workspace:"
-          pwd
-          echo "List .github/ci_profiles:"
-          ls -la .github/ci_profiles || true
-          echo "Print profiles.yml:"
-          cat .github/ci_profiles/profiles.yml || true
+          echo "Workspace: ${{ github.workspace }}"
+          echo "List .github/ci_profiles (absolute):"
+          ls -la "${{ github.workspace }}/.github/ci_profiles" || true
+          echo "Print profiles.yml (absolute):"
+          cat "${{ github.workspace }}/.github/ci_profiles/profiles.yml" || true
 
       - name: dbt deps
         run: |
-          dbt deps --project-dir dbt --profiles-dir .github/ci_profiles
+          dbt deps --project-dir dbt --profiles-dir "${{ github.workspace }}/.github/ci_profiles"
 
       - name: dbt parse
         run: |
-          dbt parse --project-dir dbt --profiles-dir .github/ci_profiles
+          dbt parse --project-dir dbt --profiles-dir "${{ github.workspace }}/.github/ci_profiles"
+    
 
   docker_build:
     name: docker_build
