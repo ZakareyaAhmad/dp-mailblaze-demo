@@ -77,7 +77,7 @@ jobs:
       - name: Install dbt
         run: |
           python -m pip install --upgrade pip
-          pip install dbt-core dbt-snowflake
+          pip install dbt-core dbt-duckdb
 
       - name: dbt deps
         run: dbt deps --project-dir dbt --profiles-dir .github/ci_profiles
