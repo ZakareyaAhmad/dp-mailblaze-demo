@@ -105,17 +105,23 @@ jobs:
   docker_build:
     name: docker_build
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
-        dockerfile:
-          - ingest/Dockerfile
-          - orchestration/prefect/Dockerfile
+        include:
+          - dockerfile: ingest/Dockerfile
+            context: ingest
+          - dockerfile: orchestration/prefect/Dockerfile
+            context: orchestration/prefect
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: docker/setup-buildx-action@v3
+
       - name: Build image
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
           push: false
