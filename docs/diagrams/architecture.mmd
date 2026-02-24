@@ -1,0 +1,32 @@
+flowchart LR
+    subgraph Sources
+        PG[Postgres]
+        SaaS[Mock SaaS API]
+    end
+
+    subgraph Ingestion
+        ING[Ingest Service]
+    end
+
+    subgraph Storage
+        S3[S3 Raw Bucket<br>dp-mailblaze-demo-dev-raw-3dfbc1]
+    end
+
+    subgraph Snowflake
+        STAGE[External Stage<br>STG_S3_RAW]
+        RAW[RAW]
+        STG[STAGING]
+        INT[INTERMEDIATE]
+        MART[MART]
+        SNAP[SNAPSHOTS]
+    end
+
+    PG --> ING
+    SaaS --> ING
+    ING --> S3
+    S3 --> STAGE
+    STAGE --> RAW
+    RAW --> STG
+    STG --> INT
+    INT --> MART
+    INT --> SNAP

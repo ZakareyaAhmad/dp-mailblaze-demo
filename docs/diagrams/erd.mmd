@@ -1,0 +1,15 @@
+erDiagram
+    DIM_CUSTOMER {
+        string customer_id PK
+        string email
+        string signup_date
+    }
+
+    FACT_EMAIL_EVENTS {
+        string event_id PK
+        string customer_id FK
+        string event_type
+        datetime event_timestamp
+    }
+
+    DIM_CUSTOMER ||--o{ FACT_EMAIL_EVENTS : has

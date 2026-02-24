@@ -1,0 +1,12 @@
+sequenceDiagram
+    participant Prefect
+    participant Ingest
+    participant S3
+    participant Snowflake
+    participant dbt
+
+    Prefect->>Ingest: Run extraction
+    Ingest->>S3: Write raw files
+    Prefect->>Snowflake: Load via STG_S3_RAW
+    Prefect->>dbt: Run models
+    dbt->>Snowflake: Build MART
